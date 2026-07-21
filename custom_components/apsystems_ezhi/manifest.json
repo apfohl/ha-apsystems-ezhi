@@ -1,0 +1,11 @@
+{
+  "domain": "apsystems_ezhi",
+  "name": "APsystems EZHI",
+  "codeowners": ["@apfohl"],
+  "config_flow": true,
+  "documentation": "https://codeberg.org/apfohl/ha-apsystems-ezhi",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://codeberg.org/apfohl/ha-apsystems-ezhi/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

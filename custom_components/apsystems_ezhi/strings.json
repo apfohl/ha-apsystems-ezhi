@@ -1,0 +1,64 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to APsystems EZHI",
+        "description": "Enter the local IP address of your EZHI device. Local mode must be enabled for the device in the APsystems app for the on-grid power limit to be writable.",
+        "data": {
+          "host": "IP address"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the device at that address. Check the IP and that local mode is enabled."
+    },
+    "abort": {
+      "already_configured": "This device is already configured."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery_status": { "name": "Battery status" },
+      "battery_soc": { "name": "Battery state of charge" },
+      "battery_soh": { "name": "Battery state of health" },
+      "battery_temperature": { "name": "Battery temperature" },
+      "device_temperature": { "name": "Device temperature" },
+      "pv_power": { "name": "PV power" },
+      "pv_total_energy": { "name": "PV total energy" },
+      "battery_power": { "name": "Battery power" },
+      "battery_charge_energy": { "name": "Battery charge energy" },
+      "battery_discharge_energy": { "name": "Battery discharge energy" },
+      "on_grid_power": { "name": "On-grid power" },
+      "on_grid_output_energy": { "name": "On-grid output energy" },
+      "on_grid_input_energy": { "name": "On-grid input energy" },
+      "off_grid_power": { "name": "Off-grid power" },
+      "off_grid_output_energy": { "name": "Off-grid output energy" },
+      "off_grid_input_energy": { "name": "Off-grid input energy" }
+    },
+    "number": {
+      "on_grid_power_limit": { "name": "On-grid power limit" }
+    },
+    "binary_sensor": {
+      "alarm_bathtp": { "name": "Battery high temperature protection" },
+      "alarm_batltp": { "name": "Battery low temperature protection" },
+      "alarm_batce": { "name": "Battery communication error" },
+      "alarm_bathv": { "name": "Battery overvoltage" },
+      "alarm_batlv": { "name": "Battery undervoltage" },
+      "alarm_bathi": { "name": "Battery overcurrent" },
+      "alarm_bate": { "name": "Battery error" },
+      "alarm_dtp": { "name": "Device temperature protection" },
+      "alarm_ee": { "name": "Device error" },
+      "alarm_sbs": { "name": "Battery shutdown" },
+      "alarm_aca": { "name": "AC abnormal" },
+      "alarm_ofoi": { "name": "Off-grid overcurrent" },
+      "alarm_pvhv": { "name": "PV high voltage" },
+      "alarm_pvoc": { "name": "PV overcurrent" },
+      "alarm_irde": { "name": "IRD error" },
+      "alarm_pvwe": { "name": "PV wiring error" },
+      "alarm_ofgs": { "name": "Off-grid short circuit" },
+      "alarm_vrp": { "name": "Voltage reset protection" },
+      "alarm_bcc": { "name": "BCC (unconfirmed)" },
+      "alarm_bci": { "name": "BCI (unconfirmed)" }
+    }
+  }
+}
