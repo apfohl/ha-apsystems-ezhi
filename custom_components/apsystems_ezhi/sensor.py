@@ -91,7 +91,6 @@ SENSOR_DESCRIPTIONS: tuple[EzhiSensorDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_num("devTemp"),
     ),
     EzhiSensorDescription(
