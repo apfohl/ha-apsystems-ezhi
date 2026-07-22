@@ -40,11 +40,9 @@ ALARMS = {
     "IRDE": "IRD Error",
     "PVWE": "PV Wiring Error",
     "OfGS": "Off-grid Short Circuit",
-    "VRP": "Voltage Reset Protection",
-    # Meaning unconfirmed - not in the vendor's local API manual as of this
-    # writing, seen on newer firmware. Update these once confirmed.
-    "BCC": "BCC (unconfirmed)",
-    "BCI": "BCI (unconfirmed)",
+    "VRP": "Voltage Recovery Protection",
+    "BCC": "Battery Calibration Charge",
+    "BCI": "Battery Calibration In Progress",
 }
 
 MIN_ON_GRID_POWER = 0

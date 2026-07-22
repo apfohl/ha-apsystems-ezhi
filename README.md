@@ -19,9 +19,9 @@ plain HTTP on your LAN. No cloud account, no API key.
 - Off-grid power + total input/output energy
 
 **Binary sensors (diagnostic, "problem" class)**
-- All 17 alarm flags from `getAlarm` (battery temp/voltage/current
+- All 20 alarm flags from `getAlarm` (battery temp/voltage/current
   protections, device errors, PV wiring/voltage/overcurrent, off-grid
-  short circuit, etc.)
+  short circuit, battery calibration, voltage recovery, etc.)
 
 **Number**
 - On-grid power limit (0–800 W), read via `getPower`, written via
