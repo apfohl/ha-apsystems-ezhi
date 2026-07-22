@@ -1,6 +1,7 @@
 """Sensor platform for APsystems EZHI."""
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
@@ -20,10 +21,13 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import BATTERY_STATUS, DOMAIN
 from .coordinator import EzhiCoordinator, EzhiData
 from .entity import EzhiEntity
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -190,7 +194,7 @@ async def async_setup_entry(
     )
 
 
-class EzhiSensor(EzhiEntity, SensorEntity):
+class EzhiSensor(EzhiEntity, SensorEntity, RestoreEntity):
     """A single field pulled from getOutputData."""
 
     entity_description: EzhiSensorDescription
@@ -198,9 +202,23 @@ class EzhiSensor(EzhiEntity, SensorEntity):
     def __init__(self, coordinator: EzhiCoordinator, description: EzhiSensorDescription) -> None:
         super().__init__(coordinator, description.key)
         self.entity_description = description
-        self._last_value: float | None = None
-        self._pending_value: float | None = None
-        self._pending_count = 0
+        self._max_value: float | None = None
+
+    async def async_added_to_hass(self) -> None:
+        """Restore the last known value so the monotonic max survives restarts."""
+        await super().async_added_to_hass()
+        if (state := await self.async_get_last_state()) is None:
+            return
+        if state.state in ("unknown", "unavailable", None):
+            return
+        try:
+            self._max_value = float(state.state)
+        except ValueError:
+            _LOGGER.debug(
+                "Could not restore previous %s value %r as float",
+                self.entity_id,
+                state.state,
+            )
 
     @property
     def native_value(self) -> Any:
@@ -212,36 +230,25 @@ class EzhiSensor(EzhiEntity, SensorEntity):
         if self.entity_description.state_class != SensorStateClass.TOTAL_INCREASING or value is None:
             return value
 
-        return self._debounced_total(value)
+        return self._monotonic_max(value)
 
-    def _debounced_total(self, value: float) -> float:
-        """Guard total_increasing counters against transient bad readings.
+    def _monotonic_max(self, value: float) -> float:
+        """Return the highest value ever seen for this total counter.
 
-        The device has been observed to briefly report 0 right after coming
-        back from being unreachable (e.g. overnight WiFi drop), before
-        correcting itself a poll later once it reloads its persisted total.
-        A single lower reading is therefore treated as suspect rather than
-        a genuine counter reset; it only gets accepted once it repeats a
-        few polls in a row, which is what a real reset (or firmware update)
-        would look like.
+        Total-increasing energy counters should never go backwards. When the
+        inverter boots at sunrise it briefly reports 0 before reloading its
+        persisted total; holding the previous maximum prevents that dip from
+        becoming an outlier in the history.
         """
-        if self._last_value is None or value >= self._last_value:
-            self._last_value = value
-            self._pending_value = None
-            self._pending_count = 0
+        if self._max_value is None or value >= self._max_value:
+            self._max_value = value
             return value
 
-        if self._pending_value == value:
-            self._pending_count += 1
-        else:
-            self._pending_value = value
-            self._pending_count = 1
-
-        if self._pending_count >= 3:
-            self._last_value = value
-            self._pending_value = None
-            self._pending_count = 0
-            return value
-
-        # Not confirmed yet -- hold the last known good value.
-        return self._last_value
+        _LOGGER.warning(
+            "%s ignored decrease from %s to %s; reporting %s",
+            self.entity_id,
+            self._max_value,
+            value,
+            self._max_value,
+        )
+        return self._max_value
