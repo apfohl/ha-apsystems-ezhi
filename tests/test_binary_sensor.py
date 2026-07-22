@@ -47,6 +47,7 @@ class _StubConfigEntriesModule(types.ModuleType):
 class _StubConstModule(types.ModuleType):
     CONF_HOST = "host"
     Platform = MagicMock()
+    EntityCategory = MagicMock()
 
 
 class _StubCoreModule(types.ModuleType):
@@ -115,6 +116,7 @@ def _install_stubs() -> None:
 
     const_stub = _StubConstModule("homeassistant.const")
     const_stub.Platform.BINARY_SENSOR = "binary_sensor"
+    const_stub.EntityCategory.DIAGNOSTIC = "diagnostic"
 
     stubs = {
         "homeassistant": ha,
@@ -152,6 +154,8 @@ def _install_stubs() -> None:
 
 _install_stubs()
 
+from homeassistant.const import EntityCategory
+
 from custom_components.apsystems_ezhi.binary_sensor import (
     BINARY_SENSOR_DESCRIPTIONS,
     EzhiAlarmBinarySensor,
@@ -177,7 +181,7 @@ def test_all_alarm_keys_have_a_description():
 def test_alarm_descriptions_use_problem_device_class():
     for description in BINARY_SENSOR_DESCRIPTIONS:
         assert description.device_class == "problem"
-        assert description.entity_category == "diagnostic"
+        assert description.entity_category is EntityCategory.DIAGNOSTIC
 
 
 def test_alarm_is_off_when_value_is_zero():

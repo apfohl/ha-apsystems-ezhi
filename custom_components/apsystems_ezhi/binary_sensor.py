@@ -7,6 +7,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -20,7 +21,7 @@ BINARY_SENSOR_DESCRIPTIONS: tuple[BinarySensorEntityDescription, ...] = tuple(
         translation_key=f"alarm_{key.lower()}",
         name=name,
         device_class=BinarySensorDeviceClass.PROBLEM,
-        entity_category="diagnostic",
+        entity_category=EntityCategory.DIAGNOSTIC,
     )
     for key, name in ALARMS.items()
 )

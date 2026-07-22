@@ -15,6 +15,7 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
+    EntityCategory,
     UnitOfEnergy,
     UnitOfPower,
     UnitOfTemperature,
@@ -73,7 +74,7 @@ SENSOR_DESCRIPTIONS: tuple[EzhiSensorDescription, ...] = (
         translation_key="battery_soh",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_category="diagnostic",
+        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_num("batSoh"),
     ),
     EzhiSensorDescription(
@@ -90,7 +91,7 @@ SENSOR_DESCRIPTIONS: tuple[EzhiSensorDescription, ...] = (
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_category="diagnostic",
+        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_num("devTemp"),
     ),
     EzhiSensorDescription(

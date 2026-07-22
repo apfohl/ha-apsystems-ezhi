@@ -51,6 +51,8 @@ class _StubConstModule(types.ModuleType):
     CONF_HOST = "host"
     PERCENTAGE = "%"
     Platform = MagicMock()
+    EntityCategory = MagicMock()
+    EntityCategory.DIAGNOSTIC = "diagnostic"
     UnitOfEnergy = MagicMock()
     UnitOfEnergy.KILO_WATT_HOUR = "kWh"
     UnitOfPower = MagicMock()
