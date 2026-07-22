@@ -56,7 +56,7 @@
       "alarm_irde": { "name": "IRD error" },
       "alarm_pvwe": { "name": "PV wiring error" },
       "alarm_ofgs": { "name": "Off-grid short circuit" },
-      "alarm_vrp": { "name": "Voltage recovery protection" },
+      "alarm_vrp": { "name": "Voltage reset protection" },
       "alarm_bcc": { "name": "Battery calibration charge" },
       "alarm_bci": { "name": "Battery calibration in progress" }
     }

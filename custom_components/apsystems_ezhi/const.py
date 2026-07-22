@@ -40,7 +40,7 @@ ALARMS = {
     "IRDE": "IRD Error",
     "PVWE": "PV Wiring Error",
     "OfGS": "Off-grid Short Circuit",
-    "VRP": "Voltage Recovery Protection",
+    "VRP": "Voltage Reset Protection",
     "BCC": "Battery Calibration Charge",
     "BCI": "Battery Calibration In Progress",
 }
