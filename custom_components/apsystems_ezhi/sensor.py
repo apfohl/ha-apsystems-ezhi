@@ -74,7 +74,6 @@ SENSOR_DESCRIPTIONS: tuple[EzhiSensorDescription, ...] = (
         translation_key="battery_soh",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=_num("batSoh"),
     ),
     EzhiSensorDescription(
