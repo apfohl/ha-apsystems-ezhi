@@ -1,6 +1,8 @@
 """The APsystems EZHI integration."""
 from __future__ import annotations
 
+from pathlib import Path
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, Platform
 from homeassistant.core import HomeAssistant
@@ -13,9 +15,29 @@ from .coordinator import EzhiCoordinator
 
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.NUMBER]
 
+CARD_URL = "/apsystems_ezhi/apsystems-ezhi-energy-card.js"
+CARD_PATH = Path(__file__).parent / "frontend" / "apsystems-ezhi-energy-card.js"
+DATA_FRONTEND_REGISTERED = "frontend_registered"
+
+
+async def _async_register_frontend(hass: HomeAssistant) -> None:
+    """Expose the bundled Lovelace card through Home Assistant's HTTP server."""
+    from homeassistant.components.http import StaticPathConfig
+
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    if domain_data.get(DATA_FRONTEND_REGISTERED):
+        return
+
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(CARD_URL, str(CARD_PATH), cache_headers=False)]
+    )
+    domain_data[DATA_FRONTEND_REGISTERED] = True
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up APsystems EZHI from a config entry."""
+    await _async_register_frontend(hass)
+
     session = async_get_clientsession(hass)
     client = EzhiClient(entry.data[CONF_HOST], session)
 

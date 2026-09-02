@@ -27,6 +27,43 @@ plain HTTP on your LAN. No cloud account, no API key.
 - On-grid power limit (0–800 W), read via `getPower`, written via
   `setPower?p=...`
 
+## Animated energy-flow card
+
+The integration bundles a responsive Lovelace card that visualizes live PV,
+on-grid, off-grid and battery power. Its connection streams animate in the
+current direction, and the card also shows battery SOC/status/temperature,
+device temperature, availability and active alarms.
+
+After installing or updating the integration and restarting Home Assistant:
+
+1. Open **Settings → Dashboards → Resources**.
+2. Add `/apsystems_ezhi/apsystems-ezhi-energy-card.js` as a **JavaScript module**.
+3. Add a card to a dashboard and choose **APsystems EZHI Energy Flow**.
+
+With one configured EZHI, the card discovers the device and its entities
+automatically. If there is more than one, select the device in the visual card
+editor. The minimal YAML is:
+
+```yaml
+type: custom:apsystems-ezhi-energy-card
+```
+
+Optional settings:
+
+```yaml
+type: custom:apsystems-ezhi-energy-card
+title: Balcony Energy Storage System
+device_id: 0123456789abcdef0123456789abcdef
+grid_positive_is_export: true
+battery_positive_is_charge: true
+flow_threshold: 1
+```
+
+The battery status is preferred when deciding charge/discharge direction. The
+`battery_positive_is_charge` fallback handles unknown/idle battery states.
+Click any device or value in the diagram to open its Home Assistant more-info
+dialog.
+
 ## Requirements
 
 - The EZHI must be reachable on your LAN at a fixed/reserved IP.
