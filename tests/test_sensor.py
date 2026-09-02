@@ -193,6 +193,7 @@ from custom_components.apsystems_ezhi.sensor import (
     EzhiSensor,
     SensorStateClass,
 )
+from custom_components.apsystems_ezhi.api import _normalize_output_data
 
 
 def _battery_status_value(data: dict[str, Any]) -> str | None:
@@ -214,6 +215,18 @@ def test_battery_status_missing_is_none():
 
 def test_battery_status_unsupported_is_none():
     assert _battery_status_value({"batS": "0"}) is None
+
+
+def test_documented_nested_battery_status_is_retained():
+    output = _normalize_output_data({"data": {"batS": "3"}})
+
+    assert _battery_status_value(output) == "discharging"
+
+
+def test_top_level_battery_status_is_normalized():
+    output = _normalize_output_data({"data": {"batSoc": "27.0"}, "batS": "1"})
+
+    assert _battery_status_value(output) == "idle"
 
 
 def _make_sensor(state_class: str = SensorStateClass.TOTAL_INCREASING) -> EzhiSensor:

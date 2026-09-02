@@ -11,6 +11,18 @@ _LOGGER = logging.getLogger(__name__)
 TIMEOUT = aiohttp.ClientTimeout(total=10)
 
 
+def _normalize_output_data(payload: dict[str, Any]) -> dict[str, Any]:
+    """Return output data across documented and observed EZHI response layouts."""
+    data = payload.get("data", {})
+    if not isinstance(data, dict):
+        return {}
+
+    # Some EZHI firmware versions send batS alongside data rather than within it.
+    if "batS" not in data and "batS" in payload:
+        return {**data, "batS": payload["batS"]}
+    return data
+
+
 class EzhiApiError(Exception):
     """Raised when the EZHI device returns an error or an unreachable response."""
 
@@ -40,6 +52,8 @@ class EzhiClient:
         if payload.get("message") != "SUCCESS":
             raise EzhiApiError(f"EZHI returned failure for {path}: {payload}")
 
+        if path == "/getOutputData":
+            return _normalize_output_data(payload)
         return payload.get("data", {})
 
     async def get_device_info(self) -> dict[str, Any]:
