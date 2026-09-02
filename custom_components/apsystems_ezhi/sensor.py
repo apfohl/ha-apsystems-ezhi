@@ -53,13 +53,21 @@ def _num(key: str) -> Callable[[dict[str, Any]], float | None]:
     return _get
 
 
+def _battery_status(data: dict[str, Any]) -> str | None:
+    """Map the documented battery status codes to enum values."""
+    raw = data.get("batS")
+    if raw is None:
+        return None
+    return BATTERY_STATUS.get(str(raw))
+
+
 SENSOR_DESCRIPTIONS: tuple[EzhiSensorDescription, ...] = (
     EzhiSensorDescription(
         key="batS",
         translation_key="battery_status",
         device_class=SensorDeviceClass.ENUM,
         options=list(BATTERY_STATUS.values()),
-        value_fn=lambda d: BATTERY_STATUS.get(str(d.get("batS")), "unknown"),
+        value_fn=_battery_status,
     ),
     EzhiSensorDescription(
         key="batSoc",

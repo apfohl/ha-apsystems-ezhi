@@ -188,7 +188,32 @@ def _install_stubs() -> None:
 
 _install_stubs()
 
-from custom_components.apsystems_ezhi.sensor import EzhiSensor, SensorStateClass
+from custom_components.apsystems_ezhi.sensor import (
+    SENSOR_DESCRIPTIONS,
+    EzhiSensor,
+    SensorStateClass,
+)
+
+
+def _battery_status_value(data: dict[str, Any]) -> str | None:
+    """Return the battery-status sensor value for an API response."""
+    description = next(
+        description for description in SENSOR_DESCRIPTIONS if description.key == "batS"
+    )
+    assert description.value_fn is not None
+    return description.value_fn(data)
+
+
+def test_battery_status_discharging():
+    assert _battery_status_value({"batS": "3"}) == "discharging"
+
+
+def test_battery_status_missing_is_none():
+    assert _battery_status_value({}) is None
+
+
+def test_battery_status_unsupported_is_none():
+    assert _battery_status_value({"batS": "0"}) is None
 
 
 def _make_sensor(state_class: str = SensorStateClass.TOTAL_INCREASING) -> EzhiSensor:
