@@ -168,10 +168,12 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
     const active = Math.abs(power) >= Number(this._config.flow_threshold);
     if (!active) {
       flow.classList.remove("active");
+      flow.classList.add("idle");
       return;
     }
 
     const wasActive = flow.classList.contains("active");
+    flow.classList.remove("idle");
     if (!wasActive) flow.classList.add("active");
     flow.classList.toggle("reverse", direction === "reverse");
 
