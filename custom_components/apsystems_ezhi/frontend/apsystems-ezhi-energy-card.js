@@ -228,8 +228,8 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
               </linearGradient>
             </defs>
 
-            <path class="track" d="M92 172 H172"/>
-            <path class="flow ${this._flow(grid, gridDirection)}" d="M92 172 H172"/>
+            <path class="track" d="M78 185 H172"/>
+            <path class="flow ${this._flow(grid, gridDirection)}" d="M78 185 H172"/>
             <path class="track" d="M332 205 V180 H268"/>
             <path class="flow ${this._flow(pv, "forward")}" d="M332 205 V180 H268"/>
             <path class="track" d="M220 242 V345"/>
@@ -238,7 +238,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
             <path class="flow ${this._flow(offGrid, "forward")}" d="M172 215 H113 V343"/>
 
             <g class="node clickable" data-key="ogP" transform="translate(50 150)">
-              <path class="icon" d="M20 0 7 44h10l-8 27m11-71 13 44H23l8 27M8 31h25M4 44h33M0 71h41"/>
+              <path class="icon" d="M20 0 4 70h32zM2 18h36M5 18v5m30-5v5M9 36h22M6 52h28M4 70h32M14 18l6 18 6-18M10 36l10 16 10-16M7 52l13 18 13-18"/>
               <text class="node-label" x="20" y="94">ON-GRID</text>
               <text class="value" x="20" y="116">${this._formatPower(grid)}</text>
               <text class="direction" x="20" y="135">${Math.abs(grid) < this._config.flow_threshold ? "idle" : gridExport ? "export" : "import"}</text>
