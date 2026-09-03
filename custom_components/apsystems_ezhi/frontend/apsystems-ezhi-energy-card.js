@@ -36,6 +36,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
     this._resolvedDeviceId = undefined;
     this._resolving = false;
     this._lastRenderKey = "";
+    this._rendered = false;
   }
 
   setConfig(config) {
@@ -51,6 +52,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
     this._entities = {};
     this._alarms = [];
     this._lastRenderKey = "";
+    this._rendered = false;
     this._resolveEntities();
   }
 
@@ -126,13 +128,6 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
     return state !== undefined && state !== "unknown" && state !== "unavailable";
   }
 
-  _flow(power, direction) {
-    const active = Math.abs(power) >= Number(this._config.flow_threshold);
-    const duration = Math.max(0.55, Math.min(2.4, 2.5 - Math.abs(power) / 450));
-    return `${active ? "active" : "idle"} ${direction === "reverse" ? "reverse" : "forward"}` +
-      `" style="--flow-duration:${duration.toFixed(2)}s`;
-  }
-
   _formatPower(value) {
     const absolute = Math.abs(value);
     if (absolute >= 1000) return `${(absolute / 1000).toFixed(2)} kW`;
@@ -166,11 +161,35 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
     });
   }
 
+  _setText(selector, value) {
+    this.shadowRoot.querySelector(selector).textContent = value;
+  }
+
+  _updateFlow(name, power, direction) {
+    const flow = this.shadowRoot.querySelector(`[data-flow="${name}"]`);
+    const active = Math.abs(power) >= Number(this._config.flow_threshold);
+    if (!active) {
+      flow.classList.remove("active");
+      return;
+    }
+
+    const wasActive = flow.classList.contains("active");
+    if (!wasActive) flow.classList.add("active");
+    flow.classList.toggle("reverse", direction === "reverse");
+
+    const animation = flow.getAnimations()[0];
+    if (!animation) return;
+
+    const duration = Math.max(0.55, Math.min(2.4, 2.5 - Math.abs(power) / 450));
+    animation.updatePlaybackRate(1 / duration);
+  }
+
   _render() {
     if (!this.shadowRoot || !this._hass) return;
     if (!this._resolvedDeviceId) {
       const message = this._resolutionError || "Discovering APsystems EZHI entities…";
       this.shadowRoot.innerHTML = `<ha-card><div class="message">${this._escape(message)}</div></ha-card>${this._baseStyle()}`;
+      this._rendered = false;
       return;
     }
 
@@ -198,7 +217,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
       this._formatTemperature("batTemp"), this._formatTemperature("devTemp"),
       this._hass.locale?.language,
     ]);
-    if (renderKey === this._lastRenderKey) return;
+    if (renderKey === this._lastRenderKey && this._rendered) return;
     this._lastRenderKey = renderKey;
 
     const statusClass = !online || activeAlarms ? "problem" : "ok";
@@ -209,41 +228,42 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
         : "Online";
     const batteryLabel = batteryStatus.replaceAll("_", " ");
 
-    this.shadowRoot.innerHTML = `
+    if (!this._rendered) {
+      this.shadowRoot.innerHTML = `
       <ha-card>
         <div class="header">
           <div>
             <div class="title">${this._escape(this._config.title)}</div>
             <div class="device-name">${this._escape(this._deviceName)}</div>
           </div>
-          <div class="status ${statusClass}"><span></span>${this._escape(statusText)}</div>
+          <div class="status" data-status><span class="status-dot"></span><span data-status-text></span></div>
         </div>
 
         <div class="diagram" role="img" aria-label="Live energy flow diagram">
           <svg viewBox="0 120 440 380" preserveAspectRatio="xMidYMid meet">
 
             <path class="track" d="M78 185 H172"/>
-            <path class="flow ${this._flow(grid, gridDirection)}" d="M78 185 H172"/>
+            <path class="flow" data-flow="grid" d="M78 185 H172"/>
             <path class="track" d="M332 215 V180 H268"/>
-            <path class="flow ${this._flow(pv, "forward")}" d="M332 215 V180 H268"/>
+            <path class="flow" data-flow="pv" d="M332 215 V180 H268"/>
             <path class="track" d="M220 242 V319"/>
-            <path class="flow ${this._flow(battery, batteryDirection)}" d="M220 242 V319"/>
+            <path class="flow" data-flow="battery" d="M220 242 V319"/>
             <path class="track" d="M172 215 H113 V328"/>
-            <path class="flow ${this._flow(offGrid, "forward")}" d="M172 215 H113 V328"/>
+            <path class="flow" data-flow="off-grid" d="M172 215 H113 V328"/>
 
             <g class="node clickable" data-key="ogP" transform="translate(50 150)">
               <path class="icon" d="M20 0 4 70h32zM2 18h36M5 18v5m30-5v5M9 36h22M6 52h28M4 70h32M14 18l6 18 6-18M10 36l10 16 10-16M7 52l13 18 13-18"/>
               <text class="node-label" x="20" y="94">ON-GRID</text>
-              <text class="value" x="20" y="116">${this._formatPower(grid)}</text>
-              <text class="direction" x="20" y="135">${Math.abs(grid) < this._config.flow_threshold ? "idle" : gridExport ? "export" : "import"}</text>
+              <text class="value" data-value="grid" x="20" y="116"></text>
+              <text class="direction" data-direction="grid" x="20" y="135"></text>
             </g>
 
             <g class="node clickable" data-key="pvP" transform="translate(332 200)">
               <path class="panel-background" d="M-28 15H28L38 53H-38z"/>
               <path class="panel" d="M-21 15l-6 38m20-38-2 38m16-38 2 38m12-38 6 38M-31 28H31M-34 41H34M0 53v14m-15 0h30"/>
               <text class="node-label" x="0" y="94">PV</text>
-              <text class="value" x="0" y="116">${this._formatPower(pv)}</text>
-              <text class="direction" x="0" y="135">${pv >= this._config.flow_threshold ? "producing" : "idle"}</text>
+              <text class="value" data-value="pv" x="0" y="116"></text>
+              <text class="direction" data-direction="pv" x="0" y="135"></text>
             </g>
 
             <g class="inverter clickable" data-key="devTemp" transform="translate(172 137)">
@@ -251,7 +271,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
               <circle cx="48" cy="43" r="16"/>
               <path d="M48 27v32M32 43h32"/>
               <text x="48" y="80">EZHI</text>
-              <text class="device-temp" x="48" y="98">${this._formatTemperature("devTemp")}</text>
+              <text class="device-temp" data-device-temp x="48" y="98"></text>
             </g>
 
             <g class="node clickable" data-key="ofgP" transform="translate(75 322)">
@@ -259,18 +279,18 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
               <circle cx="29" cy="23" r="4"/><circle cx="48" cy="23" r="4"/>
               <circle cx="29" cy="46" r="4"/><circle cx="48" cy="46" r="4"/>
               <text class="node-label" x="38" y="94">OFF-GRID</text>
-              <text class="value" x="38" y="116">${this._formatPower(offGrid)}</text>
-              <text class="direction" x="38" y="135">${offGrid >= this._config.flow_threshold ? "supplying" : "idle"}</text>
+              <text class="value" data-value="off-grid" x="38" y="116"></text>
+              <text class="direction" data-direction="off-grid" x="38" y="135"></text>
             </g>
 
             <g class="node clickable" data-key="batSoc" transform="translate(170 322)">
               <rect class="battery-shell" x="0" y="0" width="100" height="70" rx="9"/>
               <rect class="battery-cap" x="38" y="-7" width="24" height="8" rx="2"/>
-               <rect class="battery-level ${soc >= 50 ? "good" : soc >= 15 ? "warning" : "critical"}" x="7" y="${63 - (soc * 0.56)}" width="86" height="${soc * 0.56}" rx="4"/>
+              <rect class="battery-level" data-battery-level x="7" width="86" rx="4"/>
               <path class="bolt" d="M55 10 38 37h14l-6 23 18-30H51z"/>
               <text class="node-label" x="50" y="94">BATTERY</text>
-              <text class="value" x="50" y="116">${this._formatPower(battery)} · ${Math.round(soc)}%</text>
-              <text class="direction" x="50" y="135">${this._escape(batteryLabel)} · ${this._formatTemperature("batTemp")}</text>
+              <text class="value" data-value="battery" x="50" y="116"></text>
+              <text class="direction" data-direction="battery" x="50" y="135"></text>
             </g>
           </svg>
         </div>
@@ -286,20 +306,19 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
         .title { color:var(--primary-text-color); font-size:20px; font-weight:650; line-height:1.25; }
         .device-name { color:var(--secondary-text-color); font-size:13px; margin-top:4px; }
         .status { align-items:center; border-radius:999px; display:flex; flex:0 0 auto; font-size:13px; font-weight:600; gap:7px; padding:7px 10px; }
-        .status span { border-radius:50%; height:8px; width:8px; }
+        .status-dot { border-radius:50%; height:8px; width:8px; }
         .status.ok { background:color-mix(in srgb, var(--success-color, #2ecc71) 14%, transparent); color:var(--success-color, #209b55); }
-        .status.ok span { background:var(--success-color, #2ecc71); box-shadow:0 0 0 4px color-mix(in srgb, var(--success-color, #2ecc71) 16%, transparent); }
+        .status.ok .status-dot { background:var(--success-color, #2ecc71); box-shadow:0 0 0 4px color-mix(in srgb, var(--success-color, #2ecc71) 16%, transparent); }
         .status.problem { background:color-mix(in srgb, var(--error-color, #db4437) 14%, transparent); color:var(--error-color, #db4437); }
-        .status.problem span { background:var(--error-color, #db4437); }
+        .status.problem .status-dot { background:var(--error-color, #db4437); }
         .diagram { margin:0 auto; max-width:540px; padding:0 8px; }
         svg { display:block; height:auto; overflow:visible; width:100%; }
         .track { fill:none; stroke:var(--divider-color, #d8d8d8); stroke-linecap:round; stroke-linejoin:round; stroke-width:8; }
         .flow { fill:none; stroke:var(--success-color, #2ecc71); stroke-dasharray:2 14; stroke-linecap:round; stroke-linejoin:round; stroke-width:7; }
         .flow.idle { display:none; }
-        .flow.active { animation:flow-forward var(--flow-duration) linear infinite; }
-        .flow.active.reverse { animation-name:flow-reverse; }
-        @keyframes flow-forward { to { stroke-dashoffset:-32; } }
-        @keyframes flow-reverse { to { stroke-dashoffset:32; } }
+        .flow.active { animation:flow 1s linear infinite; }
+        .flow.active.reverse { animation-direction:reverse; }
+        @keyframes flow { to { stroke-dashoffset:-32; } }
         .node { color:var(--primary-text-color); cursor:pointer; }
         .node .icon, .node .panel { fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; }
         .node .panel-background { fill:var(--card-background-color, #fff); stroke:currentColor; stroke-linejoin:round; stroke-width:4; }
@@ -336,7 +355,31 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
         @media (prefers-reduced-motion:reduce) { .flow.active, .legend i { animation:none; } .flow.active { stroke-dasharray:none; opacity:.8; } }
       </style>
     `;
-    this._bindClicks();
+      this._rendered = true;
+      this._bindClicks();
+    }
+
+    this.shadowRoot.querySelector("[data-status]").className = `status ${statusClass}`;
+    this._setText("[data-status-text]", statusText);
+    this._setText("[data-value=grid]", this._formatPower(grid));
+    this._setText("[data-direction=grid]", Math.abs(grid) < this._config.flow_threshold ? "idle" : gridExport ? "export" : "import");
+    this._setText("[data-value=pv]", this._formatPower(pv));
+    this._setText("[data-direction=pv]", pv >= this._config.flow_threshold ? "producing" : "idle");
+    this._setText("[data-device-temp]", this._formatTemperature("devTemp"));
+    this._setText("[data-value=off-grid]", this._formatPower(offGrid));
+    this._setText("[data-direction=off-grid]", offGrid >= this._config.flow_threshold ? "supplying" : "idle");
+    this._setText("[data-value=battery]", `${this._formatPower(battery)} · ${Math.round(soc)}%`);
+    this._setText("[data-direction=battery]", `${batteryLabel} · ${this._formatTemperature("batTemp")}`);
+
+    const batteryLevel = this.shadowRoot.querySelector("[data-battery-level]");
+    batteryLevel.setAttribute("class", `battery-level ${soc >= 50 ? "good" : soc >= 15 ? "warning" : "critical"}`);
+    batteryLevel.setAttribute("y", 63 - (soc * 0.56));
+    batteryLevel.setAttribute("height", soc * 0.56);
+
+    this._updateFlow("grid", grid, gridDirection);
+    this._updateFlow("pv", pv, "forward");
+    this._updateFlow("battery", battery, batteryDirection);
+    this._updateFlow("off-grid", offGrid, "forward");
   }
 
   _baseStyle() {
