@@ -220,7 +220,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
         </div>
 
         <div class="diagram" role="img" aria-label="Live energy flow diagram">
-          <svg viewBox="0 0 440 500" preserveAspectRatio="xMidYMid meet">
+          <svg viewBox="0 120 440 380" preserveAspectRatio="xMidYMid meet">
             <defs>
               <linearGradient id="batteryFill" x1="0" y1="1" x2="0" y2="0">
                 <stop offset="0" stop-color="var(--warning-color, #ffb300)"/>
@@ -324,7 +324,8 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
         .bolt { fill:var(--primary-text-color); }
         .footer { border-top:1px solid var(--divider-color); color:var(--secondary-text-color); display:flex; font-size:11px; justify-content:space-between; margin:0 20px; padding:12px 0 15px; }
         .legend { align-items:center; display:flex; gap:6px; }
-        .legend i { background:var(--success-color, #2ecc71); border-radius:50%; display:inline-block; height:7px; width:7px; }
+        .legend i { animation:live-pulse 2.2s ease-in-out infinite; background:var(--success-color, #2ecc71); border-radius:50%; display:inline-block; height:7px; width:7px; }
+        @keyframes live-pulse { 50% { opacity:.65; transform:scale(.82); } }
         .clickable:hover { opacity:.78; }
         @media (max-width:420px) {
           .header { padding:16px 16px 0; }
@@ -333,7 +334,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
           .status { font-size:12px; padding:6px 8px; }
           .footer { margin:0 16px; }
         }
-        @media (prefers-reduced-motion:reduce) { .flow.active { animation:none; stroke-dasharray:none; opacity:.8; } }
+        @media (prefers-reduced-motion:reduce) { .flow.active, .legend i { animation:none; } .flow.active { stroke-dasharray:none; opacity:.8; } }
       </style>
     `;
     this._bindClicks();
