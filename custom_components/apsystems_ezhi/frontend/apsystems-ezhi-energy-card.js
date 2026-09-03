@@ -1,4 +1,4 @@
-const CARD_VERSION = "0.5.2";
+const CARD_VERSION = "0.6.0";
 const DOMAIN = "apsystems_ezhi";
 
 const ENTITY_KEYS = [
