@@ -234,8 +234,8 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
             <path class="flow ${this._flow(pv, "forward")}" d="M332 205 V180 H268"/>
             <path class="track" d="M220 242 V345"/>
             <path class="flow ${this._flow(battery, batteryDirection)}" d="M220 242 V345"/>
-            <path class="track" d="M172 215 H80 V345"/>
-            <path class="flow ${this._flow(offGrid, "forward")}" d="M172 215 H80 V345"/>
+            <path class="track" d="M172 215 H113 V343"/>
+            <path class="flow ${this._flow(offGrid, "forward")}" d="M172 215 H113 V343"/>
 
             <g class="node clickable" data-key="ogP" transform="translate(50 150)">
               <path class="icon" d="M20 0 7 44h10l-8 27m11-71 13 44H23l8 27M8 31h25M4 44h33M0 71h41"/>
@@ -259,7 +259,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
               <text class="device-temp" x="48" y="98">${this._formatTemperature("devTemp")}</text>
             </g>
 
-            <g class="node clickable" data-key="ofgP" transform="translate(42 350)">
+            <g class="node clickable" data-key="ofgP" transform="translate(75 348)">
               <rect class="outlet" x="13" y="0" width="50" height="68" rx="9"/>
               <circle cx="29" cy="23" r="4"/><circle cx="48" cy="23" r="4"/>
               <circle cx="29" cy="46" r="4"/><circle cx="48" cy="46" r="4"/>
