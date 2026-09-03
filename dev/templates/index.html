@@ -1,0 +1,76 @@
+{{define "index.html"}}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>APsystems EZHI Energy Card Shell</title>
+    <style>
+      :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+      body { --primary-text-color: #1b1b1f; --secondary-text-color: #5d5e68; --card-background-color: #fff; --divider-color: #dedee5; --success-color: #20844a; --error-color: #ba1a1a; background: #f5f5f8; color: var(--primary-text-color); margin: 0; }
+      main { display: grid; gap: 24px; grid-template-columns: minmax(0, 540px) minmax(240px, 320px); margin: 0 auto; max-width: 940px; padding: 32px 20px; }
+      ha-card { background: var(--card-background-color); border-radius: 18px; box-shadow: 0 3px 14px rgb(0 0 0 / 12%); display: block; }
+      aside { align-content: start; background: var(--card-background-color); border-radius: 14px; box-shadow: 0 2px 9px rgb(0 0 0 / 8%); display: grid; gap: 18px; padding: 20px; }
+      h1 { font-size: 18px; margin: 0; } p { color: var(--secondary-text-color); font-size: 14px; line-height: 1.5; margin: 0; }
+      label { display: grid; font-size: 14px; font-weight: 650; gap: 7px; } select { background: var(--card-background-color); border: 1px solid var(--divider-color); border-radius: 8px; color: inherit; font: inherit; padding: 9px; }
+      #more-info { background: #f2f2f6; border-radius: 7px; color: var(--secondary-text-color); font: 12px ui-monospace, monospace; margin: 0; min-height: 18px; padding: 10px; white-space: pre-wrap; }
+      @media (prefers-color-scheme: dark) { body { --primary-text-color: #e4e1e9; --secondary-text-color: #c8c5d0; --card-background-color: #1c1b20; --divider-color: #49454f; --success-color: #63dc92; --error-color: #ffb4ab; background: #121116; } #more-info { background: #2b2930; } }
+      @media (max-width: 760px) { main { grid-template-columns: minmax(0, 1fr); padding: 16px; } }
+    </style>
+    <script type="module" src="/apsystems_ezhi/apsystems-ezhi-energy-card.js"></script>
+  </head>
+  <body>
+    <main>
+      <apsystems-ezhi-energy-card></apsystems-ezhi-energy-card>
+      <aside>
+        <h1>Energy Card Development Shell</h1>
+        <p>The card is loaded from the integration source. Refresh after editing its JavaScript.</p>
+        <label>Mock scenario
+          <select id="scenario">
+            <option value="day">Daytime export and charging</option>
+            <option value="evening">Evening import and discharge</option>
+            <option value="idle">Idle</option>
+            <option value="alarm">Active device-temperature alarm</option>
+            <option value="offline">Unavailable PV sensor</option>
+          </select>
+        </label>
+        <label>Card title<input id="title" value="Balcony Energy Storage System"></label>
+        <p>Last more-info event</p>
+        <pre id="more-info">Click a node in the card.</pre>
+      </aside>
+    </main>
+    <script type="module">
+      const card = document.querySelector("apsystems-ezhi-energy-card");
+      const scenario = document.querySelector("#scenario");
+      const title = document.querySelector("#title");
+      const moreInfo = document.querySelector("#more-info");
+
+      const registry = {
+        devices: fetch("/api/device-registry").then((response) => response.json()),
+        entities: fetch("/api/entity-registry").then((response) => response.json()),
+      };
+
+      async function update() {
+        const states = await fetch(`/api/states?scenario=${encodeURIComponent(scenario.value)}`).then((response) => response.json());
+        card.hass = {
+          states,
+          locale: { language: navigator.language },
+          callWS: async (request) => {
+            if (request.type === "config/device_registry/list") return registry.devices;
+            if (request.type === "config/entity_registry/list") return registry.entities;
+            throw new Error(`Unsupported mock WebSocket request: ${request.type}`);
+          },
+        };
+      }
+
+      card.setConfig({ title: title.value });
+      scenario.addEventListener("change", update);
+      title.addEventListener("input", () => card.setConfig({ title: title.value }));
+      card.addEventListener("hass-more-info", (event) => {
+        moreInfo.textContent = event.detail.entityId;
+      });
+      update();
+    </script>
+  </body>
+</html>
+{{end}}

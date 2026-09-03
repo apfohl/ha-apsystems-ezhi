@@ -10,3 +10,6 @@ dist/
 build/
 venv/
 .venv/
+
+# Local binary produced by `go build` in the development shell directory.
+/dev/dev
