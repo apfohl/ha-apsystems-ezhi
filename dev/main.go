@@ -160,13 +160,13 @@ func entityRegistry() []map[string]string {
 
 func states(scenario string) map[string]map[string]string {
 	values := map[string]string{
-		"pvP": "620", "ogP": "180", "ofgP": "70", "batP": "170", "batSoc": "76",
+		"pvP": "620", "ogP": "-180", "ofgP": "70", "batP": "170", "batSoc": "76",
 		"batTemp": "27", "devTemp": "34", "batS": "charging",
 	}
 	switch scenario {
 	case "evening":
 		values = map[string]string{
-			"pvP": "35", "ogP": "-290", "ofgP": "180", "batP": "-420", "batSoc": "62",
+			"pvP": "35", "ogP": "290", "ofgP": "180", "batP": "-420", "batSoc": "62",
 			"batTemp": "28", "devTemp": "31", "batS": "discharging",
 		}
 	case "idle":

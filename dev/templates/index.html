@@ -48,12 +48,6 @@
         <section class="tab-panel" id="inputs-panel" role="tabpanel" aria-labelledby="inputs-tab" hidden>
           <div class="input-grid">
             <label class="wide">Card title<input id="title" value="Balcony Energy Storage System"></label>
-            <label>Grid positive means
-              <select id="grid-positive"><option value="export">Export</option><option value="import">Import</option></select>
-            </label>
-            <label>Battery positive means
-              <select id="battery-positive"><option value="charge">Charging</option><option value="discharge">Discharging</option></select>
-            </label>
             <label class="wide">Flow threshold (W)<input id="flow-threshold" type="number" min="0" value="1"></label>
             {{range .Measurements}}<label>{{.Label}}<input data-state-input data-entity-id="{{.EntityID}}" type="number" step="any"></label>{{end}}
             <label>Battery status
@@ -101,8 +95,6 @@
       function applyConfig() {
         card.setConfig({
           title: title.value,
-          grid_positive_is_export: document.querySelector("#grid-positive").value === "export",
-          battery_positive_is_charge: document.querySelector("#battery-positive").value === "charge",
           flow_threshold: Number(document.querySelector("#flow-threshold").value) || 0,
         });
       }
@@ -135,7 +127,7 @@
       });
       alarmInputs.forEach((input) => input.addEventListener("change", () => { mockStates[input.dataset.entityId].state = input.checked ? "on" : "off"; apply(); }));
       document.querySelector("#pv-available").addEventListener("change", (event) => { mockStates["sensor.apsystems_ezhi_pv_p"].state = event.target.checked ? "0" : "unavailable"; syncInputs(); apply(); });
-      [title, document.querySelector("#grid-positive"), document.querySelector("#battery-positive"), document.querySelector("#flow-threshold")].forEach((input) => {
+      [title, document.querySelector("#flow-threshold")].forEach((input) => {
         input.addEventListener("input", applyConfig);
         input.addEventListener("change", applyConfig);
       });

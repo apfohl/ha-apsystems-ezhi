@@ -43,8 +43,6 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
     if (!config) throw new Error("Invalid card configuration");
     this._config = {
       title: "Balcony Energy Storage System",
-      grid_positive_is_export: true,
-      battery_positive_is_charge: true,
       flow_threshold: 1,
       ...config,
     };
@@ -202,15 +200,12 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
     const online = this._available("pvP");
     const activeAlarms = this._alarms.filter((entityId) => this._hass.states[entityId]?.state === "on").length;
 
-    const gridExport = this._config.grid_positive_is_export ? grid >= 0 : grid < 0;
+    const gridExport = grid < 0;
     const gridDirection = gridExport ? "reverse" : "forward";
-    let batteryDirection;
-    if (batteryStatus === "charging") batteryDirection = "forward";
-    else if (batteryStatus === "discharging") batteryDirection = "reverse";
-    else {
-      const charging = this._config.battery_positive_is_charge ? battery >= 0 : battery < 0;
-      batteryDirection = charging ? "forward" : "reverse";
-    }
+    const offGridExport = offGrid < 0;
+    const offGridDirection = offGridExport ? "forward" : "reverse";
+    const charging = battery >= 0;
+    const batteryDirection = charging ? "forward" : "reverse";
 
     const renderKey = JSON.stringify([
       pv, grid, offGrid, battery, batteryStatus, soc, online, activeAlarms,
@@ -367,7 +362,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
     this._setText("[data-direction=pv]", pv >= this._config.flow_threshold ? "producing" : "idle");
     this._setText("[data-device-temp]", this._formatTemperature("devTemp"));
     this._setText("[data-value=off-grid]", this._formatPower(offGrid));
-    this._setText("[data-direction=off-grid]", offGrid >= this._config.flow_threshold ? "supplying" : "idle");
+    this._setText("[data-direction=off-grid]", Math.abs(offGrid) < this._config.flow_threshold ? "idle" : offGridExport ? "supplying" : "receiving");
     this._setText("[data-value=battery]", `${this._formatPower(battery)} · ${Math.round(soc)}%`);
     this._setText("[data-direction=battery]", `${batteryLabel} · ${this._formatTemperature("batTemp")}`);
 
@@ -379,7 +374,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
     this._updateFlow("grid", grid, gridDirection);
     this._updateFlow("pv", pv, "forward");
     this._updateFlow("battery", battery, batteryDirection);
-    this._updateFlow("off-grid", offGrid, "forward");
+    this._updateFlow("off-grid", offGrid, offGridDirection);
   }
 
   _baseStyle() {
@@ -439,19 +434,14 @@ class ApSystemsEzhiEnergyCardEditor extends HTMLElement {
       <div class="form">
         <label>EZHI device<select id="device"><option value="">Auto-detect (one device)</option>${options}</select></label>
         <label>Card title<input id="title" value="${this._escape(this._config?.title || "")}" placeholder="Balcony Energy Storage System"></label>
-        <label><input id="grid" type="checkbox" ${this._config?.grid_positive_is_export !== false ? "checked" : ""}> Positive grid power means export</label>
-        <label><input id="battery" type="checkbox" ${this._config?.battery_positive_is_charge !== false ? "checked" : ""}> Positive battery power means charging</label>
       </div>
       <style>
         .form { display:grid; gap:18px; padding:8px 0; }
         label { color:var(--primary-text-color); display:grid; font-size:14px; gap:7px; }
-        label:has(input[type=checkbox]) { align-items:center; display:flex; }
         select,input[type=text],input:not([type]) { background:var(--card-background-color); border:1px solid var(--divider-color); border-radius:8px; box-sizing:border-box; color:var(--primary-text-color); font:inherit; padding:10px; width:100%; }
       </style>`;
     this.shadowRoot.querySelector("#device")?.addEventListener("change", (event) => this._changed("device_id", event.target.value));
     this.shadowRoot.querySelector("#title")?.addEventListener("change", (event) => this._changed("title", event.target.value));
-    this.shadowRoot.querySelector("#grid")?.addEventListener("change", (event) => this._changed("grid_positive_is_export", event.target.checked));
-    this.shadowRoot.querySelector("#battery")?.addEventListener("change", (event) => this._changed("battery_positive_is_charge", event.target.checked));
   }
 
   _escape(value) {

@@ -54,13 +54,13 @@ Optional settings:
 type: custom:apsystems-ezhi-energy-card
 title: Balcony Energy Storage System
 device_id: 0123456789abcdef0123456789abcdef
-grid_positive_is_export: true
-battery_positive_is_charge: true
 flow_threshold: 1
 ```
 
-The battery status is preferred when deciding charge/discharge direction. The
-`battery_positive_is_charge` fallback handles unknown/idle battery states.
+Power values are displayed as magnitudes. Negative battery power means
+discharging; negative on-grid and off-grid power means the inverter is
+exporting to those connections. Flow animations show the direction, while the
+battery status is displayed independently.
 Click any device or value in the diagram to open its Home Assistant more-info
 dialog.
 

@@ -55,6 +55,12 @@ func TestShellIncludesEditableInputs(t *testing.T) {
 }
 
 func TestStatesScenarios(t *testing.T) {
+	if got := states("day")["sensor.apsystems_ezhi_og_p"]["state"]; got != "-180" {
+		t.Fatalf("day on-grid power = %q, want -180", got)
+	}
+	if got := states("evening")["sensor.apsystems_ezhi_og_p"]["state"]; got != "290" {
+		t.Fatalf("evening on-grid power = %q, want 290", got)
+	}
 	if got := states("evening")["sensor.apsystems_ezhi_bat_p"]["state"]; got != "-420" {
 		t.Fatalf("evening battery power = %q, want -420", got)
 	}
