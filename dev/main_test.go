@@ -40,6 +40,20 @@ func TestShellEndpoints(t *testing.T) {
 	}
 }
 
+func TestShellIncludesEditableInputs(t *testing.T) {
+	s, err := newServer("..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	recorder := httptest.NewRecorder()
+	s.handler().ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/", nil))
+	for _, content := range []string{"Presets", "Inputs", "PV power (W)", "Active alarms", "BatHTP"} {
+		if !strings.Contains(recorder.Body.String(), content) {
+			t.Fatalf("shell did not include %q", content)
+		}
+	}
+}
+
 func TestStatesScenarios(t *testing.T) {
 	if got := states("evening")["sensor.apsystems_ezhi_bat_p"]["state"]; got != "-420" {
 		t.Fatalf("evening battery power = %q, want -420", got)

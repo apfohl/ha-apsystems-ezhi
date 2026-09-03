@@ -35,6 +35,17 @@ type server struct {
 	cardScript string
 }
 
+type pageData struct {
+	Measurements []stateInput
+	Alarms       []stateInput
+}
+
+type stateInput struct {
+	EntityID string
+	Key      string
+	Label    string
+}
+
 func main() {
 	addr := flag.String("addr", ":8080", "HTTP listen address")
 	root := flag.String("root", "..", "repository root")
@@ -78,9 +89,34 @@ func (s *server) handler() http.Handler {
 }
 
 func (s *server) servePage(w http.ResponseWriter, r *http.Request) {
-	if err := s.page.ExecuteTemplate(w, "index.html", nil); err != nil {
+	if err := s.page.ExecuteTemplate(w, "index.html", shellPageData()); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func shellPageData() pageData {
+	labels := map[string]string{
+		"pvP": "PV power (W)", "ogP": "On-grid power (W)", "ofgP": "Off-grid power (W)",
+		"batP": "Battery power (W)", "batSoc": "Battery state of charge (%)",
+		"batTemp": "Battery temperature (C)", "devTemp": "Device temperature (C)",
+	}
+	measurements := make([]stateInput, 0, len(entityKeys)-1)
+	for _, key := range entityKeys {
+		if key == "batS" {
+			continue
+		}
+		measurements = append(measurements, stateInput{
+			EntityID: entityID(key),
+			Key:      key,
+			Label:    labels[key],
+		})
+	}
+
+	alarms := make([]stateInput, 0, len(alarmKeys))
+	for _, key := range alarmKeys {
+		alarms = append(alarms, stateInput{EntityID: entityID(key), Key: key, Label: key})
+	}
+	return pageData{Measurements: measurements, Alarms: alarms}
 }
 
 func (s *server) serveCard(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +151,7 @@ func entityRegistry() []map[string]string {
 	for _, key := range append(entityKeys, alarmKeys...) {
 		entities = append(entities, map[string]string{
 			"device_id": deviceID,
-			"entity_id": "sensor.apsystems_ezhi_" + snakeCase(key),
+			"entity_id": entityID(key),
 			"unique_id": deviceUniqueID + "_" + key,
 		})
 	}
@@ -146,16 +182,20 @@ func states(scenario string) map[string]map[string]string {
 
 	result := make(map[string]map[string]string, len(entityKeys)+len(alarmKeys))
 	for _, key := range entityKeys {
-		result["sensor.apsystems_ezhi_"+snakeCase(key)] = map[string]string{"state": values[key]}
+		result[entityID(key)] = map[string]string{"state": values[key]}
 	}
 	for _, key := range alarmKeys {
 		state := "off"
 		if values[key] == "on" {
 			state = "on"
 		}
-		result["sensor.apsystems_ezhi_"+snakeCase(key)] = map[string]string{"state": state}
+		result[entityID(key)] = map[string]string{"state": state}
 	}
 	return result
+}
+
+func entityID(key string) string {
+	return "sensor.apsystems_ezhi_" + snakeCase(key)
 }
 
 func snakeCase(value string) string {

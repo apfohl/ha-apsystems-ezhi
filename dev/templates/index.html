@@ -12,7 +12,11 @@
       ha-card { background: var(--card-background-color); border-radius: 18px; box-shadow: 0 3px 14px rgb(0 0 0 / 12%); display: block; }
       aside { align-content: start; background: var(--card-background-color); border-radius: 14px; box-shadow: 0 2px 9px rgb(0 0 0 / 8%); display: grid; gap: 18px; padding: 20px; }
       h1 { font-size: 18px; margin: 0; } p { color: var(--secondary-text-color); font-size: 14px; line-height: 1.5; margin: 0; }
-      label { display: grid; font-size: 14px; font-weight: 650; gap: 7px; } select { background: var(--card-background-color); border: 1px solid var(--divider-color); border-radius: 8px; color: inherit; font: inherit; padding: 9px; }
+      label { display: grid; font-size: 14px; font-weight: 650; gap: 7px; } select, input { background: var(--card-background-color); border: 1px solid var(--divider-color); border-radius: 8px; color: inherit; font: inherit; padding: 9px; }
+      input[type="checkbox"] { accent-color: var(--success-color); height: 17px; width: 17px; } input[type="number"] { min-width: 0; }
+      .tabs { border-bottom: 1px solid var(--divider-color); display: flex; gap: 16px; } .tab { background: none; border: 0; border-bottom: 2px solid transparent; color: var(--secondary-text-color); cursor: pointer; font: inherit; font-weight: 650; padding: 0 0 9px; } .tab[aria-selected="true"] { border-bottom-color: var(--success-color); color: var(--primary-text-color); }
+      .tab-panel { display: grid; gap: 16px; } .tab-panel[hidden] { display: none; } .input-grid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); } .wide { grid-column: 1 / -1; }
+      .alarm-list { display: grid; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); } .alarm-list label { align-items: center; display: flex; font-size: 12px; font-weight: 500; gap: 7px; }
       #more-info { background: #f2f2f6; border-radius: 7px; color: var(--secondary-text-color); font: 12px ui-monospace, monospace; margin: 0; min-height: 18px; padding: 10px; white-space: pre-wrap; }
       @media (prefers-color-scheme: dark) { body { --primary-text-color: #e4e1e9; --secondary-text-color: #c8c5d0; --card-background-color: #1c1b20; --divider-color: #49454f; --success-color: #63dc92; --error-color: #ffb4ab; background: #121116; } #more-info { background: #2b2930; } }
       @media (max-width: 760px) { main { grid-template-columns: minmax(0, 1fr); padding: 16px; } }
@@ -25,16 +29,45 @@
       <aside>
         <h1>Energy Card Development Shell</h1>
         <p>The card is loaded from the integration source. Refresh after editing its JavaScript.</p>
-        <label>Mock scenario
-          <select id="scenario">
-            <option value="day">Daytime export and charging</option>
-            <option value="evening">Evening import and discharge</option>
-            <option value="idle">Idle</option>
-            <option value="alarm">Active device-temperature alarm</option>
-            <option value="offline">Unavailable PV sensor</option>
-          </select>
-        </label>
-        <label>Card title<input id="title" value="Balcony Energy Storage System"></label>
+        <div class="tabs" role="tablist" aria-label="Development controls">
+          <button class="tab" id="presets-tab" role="tab" aria-selected="true" aria-controls="presets-panel">Presets</button>
+          <button class="tab" id="inputs-tab" role="tab" aria-selected="false" aria-controls="inputs-panel">Inputs</button>
+        </div>
+        <section class="tab-panel" id="presets-panel" role="tabpanel" aria-labelledby="presets-tab">
+          <label>Mock scenario
+            <select id="scenario">
+              <option value="day">Daytime export and charging</option>
+              <option value="evening">Evening import and discharge</option>
+              <option value="idle">Idle</option>
+              <option value="alarm">Active device-temperature alarm</option>
+              <option value="offline">Unavailable PV sensor</option>
+            </select>
+          </label>
+          <p>Selecting a preset resets all mock values in the Inputs tab.</p>
+        </section>
+        <section class="tab-panel" id="inputs-panel" role="tabpanel" aria-labelledby="inputs-tab" hidden>
+          <div class="input-grid">
+            <label class="wide">Card title<input id="title" value="Balcony Energy Storage System"></label>
+            <label>Grid positive means
+              <select id="grid-positive"><option value="export">Export</option><option value="import">Import</option></select>
+            </label>
+            <label>Battery positive means
+              <select id="battery-positive"><option value="charge">Charging</option><option value="discharge">Discharging</option></select>
+            </label>
+            <label class="wide">Flow threshold (W)<input id="flow-threshold" type="number" min="0" value="1"></label>
+            {{range .Measurements}}<label>{{.Label}}<input data-state-input data-entity-id="{{.EntityID}}" type="number" step="any"></label>{{end}}
+            <label>Battery status
+              <select data-state-input data-entity-id="sensor.apsystems_ezhi_bat_s">
+                <option value="idle">Idle</option><option value="charging">Charging</option><option value="discharging">Discharging</option><option value="fault">Fault</option><option value="shutdown">Shutdown</option><option value="no_communication">No communication</option><option value="unknown">Unknown</option>
+              </select>
+            </label>
+            <label>PV sensor available<input id="pv-available" type="checkbox" checked></label>
+          </div>
+          <div>
+            <p>Active alarms</p>
+            <div class="alarm-list">{{range .Alarms}}<label><input data-alarm-input data-entity-id="{{.EntityID}}" type="checkbox">{{.Label}}</label>{{end}}</div>
+          </div>
+        </section>
         <p>Last more-info event</p>
         <pre id="more-info">Click a node in the card.</pre>
       </aside>
@@ -44,16 +77,18 @@
       const scenario = document.querySelector("#scenario");
       const title = document.querySelector("#title");
       const moreInfo = document.querySelector("#more-info");
+      const stateInputs = document.querySelectorAll("[data-state-input]");
+      const alarmInputs = document.querySelectorAll("[data-alarm-input]");
+      let mockStates = {};
 
       const registry = {
         devices: fetch("/api/device-registry").then((response) => response.json()),
         entities: fetch("/api/entity-registry").then((response) => response.json()),
       };
 
-      async function update() {
-        const states = await fetch(`/api/states?scenario=${encodeURIComponent(scenario.value)}`).then((response) => response.json());
+      function apply() {
         card.hass = {
-          states,
+          states: mockStates,
           locale: { language: navigator.language },
           callWS: async (request) => {
             if (request.type === "config/device_registry/list") return registry.devices;
@@ -63,13 +98,52 @@
         };
       }
 
-      card.setConfig({ title: title.value });
-      scenario.addEventListener("change", update);
-      title.addEventListener("input", () => card.setConfig({ title: title.value }));
+      function applyConfig() {
+        card.setConfig({
+          title: title.value,
+          grid_positive_is_export: document.querySelector("#grid-positive").value === "export",
+          battery_positive_is_charge: document.querySelector("#battery-positive").value === "charge",
+          flow_threshold: Number(document.querySelector("#flow-threshold").value) || 0,
+        });
+      }
+
+      function syncInputs() {
+        stateInputs.forEach((input) => { input.value = mockStates[input.dataset.entityId].state; });
+        alarmInputs.forEach((input) => { input.checked = mockStates[input.dataset.entityId].state === "on"; });
+        document.querySelector("#pv-available").checked = mockStates["sensor.apsystems_ezhi_pv_p"].state !== "unavailable";
+      }
+
+      async function loadPreset() {
+        mockStates = await fetch(`/api/states?scenario=${encodeURIComponent(scenario.value)}`).then((response) => response.json());
+        syncInputs();
+        apply();
+      }
+
+      document.querySelectorAll("[role=tab]").forEach((tab) => tab.addEventListener("click", () => {
+        document.querySelectorAll("[role=tab]").forEach((item) => item.setAttribute("aria-selected", item === tab));
+        document.querySelectorAll("[role=tabpanel]").forEach((panel) => { panel.hidden = panel.getAttribute("aria-labelledby") !== tab.id; });
+      }));
+      scenario.addEventListener("change", loadPreset);
+      function updateStateInput(input) {
+        mockStates[input.dataset.entityId].state = input.value;
+        if (input.dataset.entityId === "sensor.apsystems_ezhi_pv_p") document.querySelector("#pv-available").checked = true;
+        apply();
+      }
+      stateInputs.forEach((input) => {
+        input.addEventListener("input", () => updateStateInput(input));
+        input.addEventListener("change", () => updateStateInput(input));
+      });
+      alarmInputs.forEach((input) => input.addEventListener("change", () => { mockStates[input.dataset.entityId].state = input.checked ? "on" : "off"; apply(); }));
+      document.querySelector("#pv-available").addEventListener("change", (event) => { mockStates["sensor.apsystems_ezhi_pv_p"].state = event.target.checked ? "0" : "unavailable"; syncInputs(); apply(); });
+      [title, document.querySelector("#grid-positive"), document.querySelector("#battery-positive"), document.querySelector("#flow-threshold")].forEach((input) => {
+        input.addEventListener("input", applyConfig);
+        input.addEventListener("change", applyConfig);
+      });
       card.addEventListener("hass-more-info", (event) => {
         moreInfo.textContent = event.detail.entityId;
       });
-      update();
+      applyConfig();
+      loadPreset();
     </script>
   </body>
 </html>
