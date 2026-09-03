@@ -221,12 +221,6 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
 
         <div class="diagram" role="img" aria-label="Live energy flow diagram">
           <svg viewBox="0 120 440 380" preserveAspectRatio="xMidYMid meet">
-            <defs>
-              <linearGradient id="batteryFill" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="0" stop-color="var(--warning-color, #ffb300)"/>
-                <stop offset="1" stop-color="var(--success-color, #2ecc71)"/>
-              </linearGradient>
-            </defs>
 
             <path class="track" d="M78 185 H172"/>
             <path class="flow ${this._flow(grid, gridDirection)}" d="M78 185 H172"/>
@@ -272,7 +266,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
             <g class="node clickable" data-key="batSoc" transform="translate(170 322)">
               <rect class="battery-shell" x="0" y="0" width="100" height="70" rx="9"/>
               <rect class="battery-cap" x="38" y="-7" width="24" height="8" rx="2"/>
-              <rect class="battery-level" x="7" y="${63 - (soc * 0.56)}" width="86" height="${soc * 0.56}" rx="4"/>
+               <rect class="battery-level ${soc >= 50 ? "good" : soc >= 15 ? "warning" : "critical"}" x="7" y="${63 - (soc * 0.56)}" width="86" height="${soc * 0.56}" rx="4"/>
               <path class="bolt" d="M55 10 38 37h14l-6 23 18-30H51z"/>
               <text class="node-label" x="50" y="94">BATTERY</text>
               <text class="value" x="50" y="116">${this._formatPower(battery)} · ${Math.round(soc)}%</text>
@@ -322,7 +316,10 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
         .inverter .device-temp { font-size:10px; font-weight:500; letter-spacing:0; opacity:.8; }
         .battery-shell { fill:var(--card-background-color, #fff); stroke:var(--secondary-text-color); stroke-width:3; }
         .battery-cap { fill:var(--secondary-text-color); }
-        .battery-level { fill:url(#batteryFill); opacity:.9; }
+        .battery-level { opacity:.9; }
+        .battery-level.good { fill:var(--success-color, #2ecc71); }
+        .battery-level.warning { fill:var(--warning-color, #ffb300); }
+        .battery-level.critical { fill:#e53935; opacity:1; }
         .bolt { fill:var(--primary-text-color); }
         .footer { border-top:1px solid var(--divider-color); color:var(--secondary-text-color); display:flex; font-size:11px; justify-content:space-between; margin:0 20px; padding:12px 0 15px; }
         .legend { align-items:center; display:flex; gap:6px; }
