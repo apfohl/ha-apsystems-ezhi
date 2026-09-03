@@ -245,7 +245,8 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
             </g>
 
             <g class="node clickable" data-key="pvP" transform="translate(332 190)">
-              <path class="panel" d="M-27 15h55l10 38h-76zM-20 15l-7 38m20-38-3 38m17-38 3 38m18-38 7 38M-33 28h64M-36 41h70M0 53v14m-15 0h30"/>
+              <path class="panel-background" d="M-28 15H28L38 53H-38z"/>
+              <path class="panel" d="M-21 15l-6 38m20-38-2 38m16-38 2 38m12-38 6 38M-31 28H31M-34 41H34M0 53v14m-15 0h30"/>
               <text class="node-label" x="0" y="94">PV</text>
               <text class="value" x="0" y="116">${this._formatPower(pv)}</text>
               <text class="direction" x="0" y="135">${pv >= this._config.flow_threshold ? "producing" : "idle"}</text>
@@ -307,6 +308,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
         @keyframes flow-reverse { to { stroke-dashoffset:32; } }
         .node { color:var(--primary-text-color); cursor:pointer; }
         .node .icon, .node .panel { fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round; stroke-width:4; }
+        .node .panel-background { fill:var(--card-background-color, #fff); stroke:currentColor; stroke-linejoin:round; stroke-width:4; }
         .node .outlet { fill:var(--card-background-color, #fff); stroke:var(--divider-color, #ddd); stroke-width:2; }
         .node circle { fill:var(--secondary-text-color); }
         text { font-family:var(--paper-font-body1_-_font-family, Roboto, sans-serif); text-anchor:middle; }
