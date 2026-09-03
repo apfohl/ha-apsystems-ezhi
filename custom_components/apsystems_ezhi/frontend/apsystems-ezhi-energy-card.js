@@ -232,8 +232,8 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
             <path class="flow ${this._flow(grid, gridDirection)}" d="M92 172 H172"/>
             <path class="track" d="M332 205 V180 H268"/>
             <path class="flow ${this._flow(pv, "forward")}" d="M332 205 V180 H268"/>
-            <path class="track" d="M205 242 V345"/>
-            <path class="flow ${this._flow(battery, batteryDirection)}" d="M205 242 V345"/>
+            <path class="track" d="M220 242 V345"/>
+            <path class="flow ${this._flow(battery, batteryDirection)}" d="M220 242 V345"/>
             <path class="track" d="M172 215 H80 V345"/>
             <path class="flow ${this._flow(offGrid, "forward")}" d="M172 215 H80 V345"/>
 
@@ -268,7 +268,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
               <text class="direction" x="38" y="135">${offGrid >= this._config.flow_threshold ? "supplying" : "idle"}</text>
             </g>
 
-            <g class="node clickable" data-key="batSoc" transform="translate(155 348)">
+            <g class="node clickable" data-key="batSoc" transform="translate(170 348)">
               <rect class="battery-shell" x="0" y="0" width="100" height="70" rx="9"/>
               <rect class="battery-cap" x="38" y="-7" width="24" height="8" rx="2"/>
               <rect class="battery-level" x="7" y="${63 - (soc * 0.56)}" width="86" height="${soc * 0.56}" rx="4"/>
