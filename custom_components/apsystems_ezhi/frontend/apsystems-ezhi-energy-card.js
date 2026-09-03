@@ -230,12 +230,12 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
 
             <path class="track" d="M78 185 H172"/>
             <path class="flow ${this._flow(grid, gridDirection)}" d="M78 185 H172"/>
-            <path class="track" d="M332 205 V180 H268"/>
-            <path class="flow ${this._flow(pv, "forward")}" d="M332 205 V180 H268"/>
+            <path class="track" d="M332 215 V180 H268"/>
+            <path class="flow ${this._flow(pv, "forward")}" d="M332 215 V180 H268"/>
             <path class="track" d="M220 242 V319"/>
             <path class="flow ${this._flow(battery, batteryDirection)}" d="M220 242 V319"/>
-            <path class="track" d="M172 215 H113 V317"/>
-            <path class="flow ${this._flow(offGrid, "forward")}" d="M172 215 H113 V317"/>
+            <path class="track" d="M172 215 H113 V328"/>
+            <path class="flow ${this._flow(offGrid, "forward")}" d="M172 215 H113 V328"/>
 
             <g class="node clickable" data-key="ogP" transform="translate(50 150)">
               <path class="icon" d="M20 0 4 70h32zM2 18h36M5 18v5m30-5v5M9 36h22M6 52h28M4 70h32M14 18l6 18 6-18M10 36l10 16 10-16M7 52l13 18 13-18"/>
@@ -244,7 +244,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
               <text class="direction" x="20" y="135">${Math.abs(grid) < this._config.flow_threshold ? "idle" : gridExport ? "export" : "import"}</text>
             </g>
 
-            <g class="node clickable" data-key="pvP" transform="translate(332 190)">
+            <g class="node clickable" data-key="pvP" transform="translate(332 200)">
               <path class="panel-background" d="M-28 15H28L38 53H-38z"/>
               <path class="panel" d="M-21 15l-6 38m20-38-2 38m16-38 2 38m12-38 6 38M-31 28H31M-34 41H34M0 53v14m-15 0h30"/>
               <text class="node-label" x="0" y="94">PV</text>
