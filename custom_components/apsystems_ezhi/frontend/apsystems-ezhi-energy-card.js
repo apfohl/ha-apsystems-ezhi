@@ -232,10 +232,10 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
             <path class="flow ${this._flow(grid, gridDirection)}" d="M78 185 H172"/>
             <path class="track" d="M332 205 V180 H268"/>
             <path class="flow ${this._flow(pv, "forward")}" d="M332 205 V180 H268"/>
-            <path class="track" d="M220 242 V345"/>
-            <path class="flow ${this._flow(battery, batteryDirection)}" d="M220 242 V345"/>
-            <path class="track" d="M172 215 H113 V343"/>
-            <path class="flow ${this._flow(offGrid, "forward")}" d="M172 215 H113 V343"/>
+            <path class="track" d="M220 242 V319"/>
+            <path class="flow ${this._flow(battery, batteryDirection)}" d="M220 242 V319"/>
+            <path class="track" d="M172 215 H113 V317"/>
+            <path class="flow ${this._flow(offGrid, "forward")}" d="M172 215 H113 V317"/>
 
             <g class="node clickable" data-key="ogP" transform="translate(50 150)">
               <path class="icon" d="M20 0 4 70h32zM2 18h36M5 18v5m30-5v5M9 36h22M6 52h28M4 70h32M14 18l6 18 6-18M10 36l10 16 10-16M7 52l13 18 13-18"/>
@@ -260,7 +260,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
               <text class="device-temp" x="48" y="98">${this._formatTemperature("devTemp")}</text>
             </g>
 
-            <g class="node clickable" data-key="ofgP" transform="translate(75 348)">
+            <g class="node clickable" data-key="ofgP" transform="translate(75 322)">
               <rect class="outlet" x="13" y="0" width="50" height="68" rx="9"/>
               <circle cx="29" cy="23" r="4"/><circle cx="48" cy="23" r="4"/>
               <circle cx="29" cy="46" r="4"/><circle cx="48" cy="46" r="4"/>
@@ -269,7 +269,7 @@ class ApSystemsEzhiEnergyCard extends HTMLElement {
               <text class="direction" x="38" y="135">${offGrid >= this._config.flow_threshold ? "supplying" : "idle"}</text>
             </g>
 
-            <g class="node clickable" data-key="batSoc" transform="translate(170 348)">
+            <g class="node clickable" data-key="batSoc" transform="translate(170 322)">
               <rect class="battery-shell" x="0" y="0" width="100" height="70" rx="9"/>
               <rect class="battery-cap" x="38" y="-7" width="24" height="8" rx="2"/>
               <rect class="battery-level" x="7" y="${63 - (soc * 0.56)}" width="86" height="${soc * 0.56}" rx="4"/>
